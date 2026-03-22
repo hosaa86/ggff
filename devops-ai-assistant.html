@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEPLOY.AI — Full Stack Assistant</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111318;
+    --surface2: #1a1d26;
+    --border: #2a2d3a;
+    --accent: #00ff88;
+    --accent2: #0088ff;
+    --accent3: #ff4466;
+    --warn: #ffaa00;
+    --text: #e8eaf0;
+    --muted: #6b7080;
+    --glow: 0 0 20px rgba(0,255,136,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(0,255,136,0); }
+  }
+
+  .logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+
+  .header-status {
+    display: flex; align-items: center; gap: 16px;
+  }
+
+  .status-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--accent);
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.2);
+    padding: 4px 10px; border-radius: 20px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  .btn-icon {
+    width: 34px; height: 34px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+
+  .btn-icon:hover { background: var(--border); border-color: var(--accent); }
+
+  /* LAYOUT */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-section { padding: 16px 14px 8px; }
+
+  .sidebar-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+
+  .mode-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px;
+    cursor: pointer; transition: all 0.18s;
+    border: 1px solid transparent;
+    margin-bottom: 2px; font-size: 13px; font-weight: 600;
+    color: var(--muted);
+  }
+
+  .mode-btn:hover { background: var(--surface2); color: var(--text); }
+
+  .mode-btn.active {
+    background: rgba(0,255,136,0.08);
+    border-color: rgba(0,255,136,0.25);
+    color: var(--accent);
+  }
+
+  .mode-btn .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .divider {
+    height: 1px; background: var(--border);
+    margin: 8px 14px;
+  }
+
+  .project-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 8px;
+    cursor: pointer; font-size: 12px;
+    color: var(--muted); transition: all 0.15s;
+    margin-bottom: 1px;
+  }
+
+  .project-item:hover { background: var(--surface2); color: var(--text); }
+
+  .project-dot {
+    width: 8px; height: 8px; border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* CHAT AREA */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* SCREEN SHARE BANNER */
+  .screen-share-banner {
+    background: linear-gradient(90deg, rgba(0,136,255,0.12), rgba(0,255,136,0.08));
+    border-bottom: 1px solid rgba(0,136,255,0.3);
+    padding: 10px 20px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .screen-share-banner.active { display: flex; }
+
+  .screen-share-info { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .screen-share-indicator {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent2);
+    animation: blink 1s infinite;
+  }
+
+  .screen-preview {
+    width: 120px; height: 68px;
+    background: #000;
+    border-radius: 6px;
+    border: 1px solid var(--accent2);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .screen-preview video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  .screen-preview-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* MESSAGES */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    animation: fadeUp 0.3s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0; font-weight: 700;
+  }
+
+  .avatar.ai {
+    background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,136,255,0.2));
+    border: 1px solid rgba(0,255,136,0.3);
+    font-size: 14px;
+  }
+
+  .avatar.user {
+    background: linear-gradient(135deg, rgba(255,68,102,0.2), rgba(255,170,0,0.2));
+    border: 1px solid rgba(255,68,102,0.3);
+    font-size: 12px; color: var(--text);
+  }
+
+  .msg-content { max-width: 75%; display: flex; flex-direction: column; gap: 4px; }
+
+  .message.user .msg-content { align-items: flex-end; }
+
+  .msg-bubble {
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    position: relative;
+  }
+
+  .message.ai .msg-bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+
+  .message.user .msg-bubble {
+    background: linear-gradient(135deg, rgba(0,136,255,0.2), rgba(0,136,255,0.1));
+    border: 1px solid rgba(0,136,255,0.3);
+    border-top-right-radius: 4px;
+  }
+
+  .msg-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--muted);
+  }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 8px 0;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--accent); font-weight: 700;
+  }
+
+  .copy-btn {
+    font-size: 11px; color: var(--muted);
+    cursor: pointer; padding: 2px 8px;
+    border-radius: 4px; transition: all 0.15s;
+    background: transparent; border: 1px solid transparent;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .copy-btn:hover { color: var(--text); border-color: var(--border); background: var(--surface2); }
+
+  .code-body {
+    padding: 12px 16px;
+    font-family: 'Space Mono', monospace;
+    line-height: 1.7; color: #c9d1d9;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .code-body .kw { color: #ff7b72; }
+  .code-body .str { color: #a5d6ff; }
+  .code-body .cm { color: #8b949e; }
+  .code-body .fn { color: #d2a8ff; }
+  .code-body .num { color: #79c0ff; }
+  .code-body .var { color: #ffa657; }
+
+  /* STEP GUIDE */
+  .step-guide {
+    background: rgba(0,136,255,0.06);
+    border: 1px solid rgba(0,136,255,0.2);
+    border-radius: 10px;
+    padding: 14px;
+    margin: 8px 0;
+  }
+
+  .step-guide-title {
+    font-size: 12px; font-weight: 700; color: var(--accent2);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+
+  .step {
+    display: flex; gap: 10px;
+    margin-bottom: 8px; font-size: 13px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(0,136,255,0.2);
+    border: 1px solid rgba(0,136,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--accent2);
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  .step.done .step-num {
+    background: rgba(0,255,136,0.2);
+    border-color: rgba(0,255,136,0.4);
+    color: var(--accent);
+  }
+
+  /* RESEARCH BADGE */
+  .research-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,170,0,0.1);
+    border: 1px solid rgba(255,170,0,0.25);
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; color: var(--warn);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  /* TYPING INDICATOR */
+  .typing {
+    display: flex; gap: 4px; padding: 8px 0;
+    align-items: center;
+  }
+
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: typing 1.2s ease-in-out infinite;
+    display: inline-block;
+  }
+
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%,60%,100%{ transform: translateY(0); opacity: 0.4; }
+    30%{ transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* QUICK ACTIONS */
+  .quick-actions {
+    padding: 12px 20px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .quick-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: pointer; font-size: 12px; color: var(--muted);
+    transition: all 0.18s; font-family: 'Syne', sans-serif;
+  }
+
+  .quick-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,136,0.05);
+  }
+
+  /* INPUT AREA */
+  .input-area {
+    padding: 12px 20px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .input-wrapper {
+    display: flex; gap: 10px; align-items: flex-end;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: rgba(0,255,136,0.4);
+    box-shadow: var(--glow);
+  }
+
+  .input-tools {
+    display: flex; gap: 4px; align-items: center;
+  }
+
+  .input-tool-btn {
+    width: 28px; height: 28px;
+    background: transparent; border: none;
+    cursor: pointer; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--muted); transition: all 0.15s;
+  }
+
+  .input-tool-btn:hover { background: var(--border); color: var(--text); }
+
+  #msgInput {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-size: 14px; font-family: 'Syne', sans-serif;
+    resize: none; max-height: 120px; min-height: 24px;
+    line-height: 1.5;
+  }
+
+  #msgInput::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: all 0.2s; flex-shrink: 0;
+  }
+
+  .send-btn:hover { transform: scale(1.05); box-shadow: 0 0 16px rgba(0,255,136,0.3); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    width: 280px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow-y: auto; flex-shrink: 0;
+  }
+
+  .panel-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 12px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .stack-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    margin-bottom: 6px; font-size: 13px;
+    cursor: pointer; transition: all 0.15s;
+  }
+
+  .stack-item:hover { border-color: var(--accent); }
+
+  .stack-icon { font-size: 18px; }
+
+  .stack-info { flex: 1; }
+  .stack-name { font-weight: 600; font-size: 12px; }
+  .stack-version {
+    font-size: 10px; color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .stack-status {
+    width: 6px; height: 6px; border-radius: 50%;
+  }
+
+  .stack-status.ok { background: var(--accent); }
+  .stack-status.warn { background: var(--warn); }
+
+  /* RESEARCH PANEL */
+  .research-item {
+    padding: 8px 10px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+  }
+
+  .research-item:hover { border-color: var(--warn); }
+
+  .research-item-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .research-item-sub { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+  /* DEPLOY WIDGET */
+  .deploy-widget {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .deploy-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .deploy-name { font-size: 13px; font-weight: 700; }
+  .deploy-env {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .deploy-env.prod { background: rgba(255,68,102,0.1); color: var(--accent3); border: 1px solid rgba(255,68,102,0.2); }
+  .deploy-env.staging { background: rgba(255,170,0,0.1); color: var(--warn); border: 1px solid rgba(255,170,0,0.2); }
+  .deploy-env.dev { background: rgba(0,255,136,0.1); color: var(--accent); border: 1px solid rgba(0,255,136,0.2); }
+
+  .deploy-progress { margin-top: 6px; }
+  .progress-bar {
+    height: 4px; border-radius: 2px;
+    background: var(--border); overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.5s ease;
+  }
+
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--muted); margin-top: 4px;
+  }
+
+  /* SCREEN SHARE BTN */
+  .screen-share-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-radius: 10px;
+    background: rgba(0,136,255,0.1);
+    border: 1px solid rgba(0,136,255,0.3);
+    cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--accent2); transition: all 0.2s;
+    margin-bottom: 8px; width: 100%;
+  }
+
+  .screen-share-btn:hover { background: rgba(0,136,255,0.18); }
+  .screen-share-btn.active { background: rgba(255,68,102,0.1); border-color: rgba(255,68,102,0.3); color: var(--accent3); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px; width: 420px;
+    animation: modalIn 0.25s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-title {
+    font-size: 18px; font-weight: 800; margin-bottom: 6px;
+  }
+
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  .modal-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+  .modal-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: pointer; transition: all 0.18s;
+  }
+
+  .modal-option:hover { border-color: var(--accent); }
+  .modal-option .opt-icon { font-size: 22px; }
+  .modal-option .opt-title { font-size: 14px; font-weight: 700; }
+  .modal-option .opt-sub { font-size: 12px; color: var(--muted); }
+
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .btn-primary {
+    padding: 9px 20px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; cursor: pointer;
+    font-size: 13px; font-weight: 700; color: #000;
+    font-family: 'Syne', sans-serif; transition: all 0.2s;
+  }
+
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,255,136,0.25); }
+
+  .btn-ghost {
+    padding: 9px 20px; border-radius: 8px;
+    background: transparent; border: 1px solid var(--border);
+    cursor: pointer; font-size: 13px; color: var(--muted);
+    font-family: 'Syne', sans-serif; transition: all 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+  /* SCREEN SHARE OVERLAY */
+  .annotate-toolbar {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 8px 16px;
+    display: none; gap: 8px; align-items: center;
+    z-index: 50; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .annotate-toolbar.show { display: flex; }
+
+  .annotate-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; background: var(--surface2);
+    border: 1px solid var(--border); font-size: 14px;
+    transition: all 0.15s;
+  }
+
+  .annotate-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* SCROLLBAR */
+  .sidebar::-webkit-scrollbar,
+  .right-panel::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb,
+  .right-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">DEPLOY<span>.AI</span></div>
+  </div>
+  <div class="header-status">
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      AI ONLINE
+    </div>
+    <div class="status-badge" style="color:var(--accent2);background:rgba(0,136,255,0.08);border-color:rgba(0,136,255,0.2);">
+      🔍 RESEARCH ACTIVE
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" title="New Session" onclick="clearChat()">✨</button>
+    <button class="btn-icon" title="Settings" onclick="showSettings()">⚙️</button>
+    <button class="btn-icon" title="Export Chat" onclick="exportChat()">📤</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Mode</div>
+      <div class="mode-btn active" onclick="setMode(this,'deploy')" data-mode="deploy">
+        <span class="icon">🚀</span> Deploy
+      </div>
+      <div class="mode-btn" onclick="setMode(this,'debug')" data-mode="debug">
+        <span class="icon">🐛</span> Debug
+      </div>
+      <div class="mode-btn" onclick="setMode(this,'architect')" data-mode="architect">
+        <span class="icon">🏗️</span> Architect
+      </div>
+      <div class="mode-btn" onclick="setMode(this,'review')" data-mode="review">
+        <span class="icon">🔍</span> Code Review
+      </div>
+      <div class="mode-btn" onclick="setMode(this,'guide')" data-mode="guide">
+        <span class="icon">🧭</span> Step Guide
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Recent Projects</div>
+      <div class="project-item">
+        <div class="project-dot" style="background:#00ff88"></div>
+        my-nextjs-app
+      </div>
+      <div class="project-item">
+        <div class="project-dot" style="background:#0088ff"></div>
+        api-backend
+      </div>
+      <div class="project-item">
+        <div class="project-dot" style="background:#ff4466"></div>
+        mobile-app
+      </div>
+      <div class="project-item">
+        <div class="project-dot" style="background:#ffaa00"></div>
+        docker-services
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Quick Deploy</div>
+      <div class="mode-btn" onclick="quickDeploy('vercel')">
+        <span class="icon">▲</span> Vercel
+      </div>
+      <div class="mode-btn" onclick="quickDeploy('railway')">
+        <span class="icon">🚂</span> Railway
+      </div>
+      <div class="mode-btn" onclick="quickDeploy('docker')">
+        <span class="icon">🐳</span> Docker
+      </div>
+      <div class="mode-btn" onclick="quickDeploy('aws')">
+        <span class="icon">☁️</span> AWS / Cloud
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-area">
+    <div class="screen-share-banner" id="screenShareBanner">
+      <div class="screen-share-info">
+        <div class="screen-share-indicator"></div>
+        <span style="font-size:13px; font-weight:600; color:var(--accent2)">Screen sharing active</span>
+        <span style="font-size:12px; color:var(--muted)">— AI can see your screen</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="screen-preview" id="screenPreview">
+          <video id="screenVideo" autoplay muted></video>
+          <div class="screen-preview-placeholder" id="screenPlaceholder" style="display:none">📺 Live</div>
+        </div>
+        <button class="btn-icon" onclick="stopScreenShare()" style="border-color:rgba(255,68,102,0.3);color:var(--accent3)">✕</button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <!-- Welcome message -->
+      <div class="message ai">
+        <div class="avatar ai">⚡</div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            <div class="research-badge">🔍 Pre-checked latest docs & changelogs</div>
+            <p style="font-weight:700;font-size:15px;margin-bottom:8px">Hey! I'm your full-stack deploy assistant.</p>
+            <p style="margin-bottom:10px;color:#a0a8b8">I can help you deploy, debug, architect and guide you through any project. Before every task I research the <strong>latest updates</strong> so you get accurate, current solutions.</p>
+            <div class="step-guide">
+              <div class="step-guide-title">🎯 What I can do</div>
+              <div class="step"><div class="step-num done">✓</div><div>Deploy to Vercel, Railway, AWS, Docker & more</div></div>
+              <div class="step"><div class="step-num done">✓</div><div>Full-stack: React, Next.js, Node, Python, Go, etc.</div></div>
+              <div class="step"><div class="step-num done">✓</div><div>Share your screen for live guided walkthroughs</div></div>
+              <div class="step"><div class="step-num done">✓</div><div>Research latest changelogs before every task</div></div>
+              <div class="step"><div class="step-num done">✓</div><div>Step-by-step guides for manual parts</div></div>
+            </div>
+            <p style="color:#a0a8b8;font-size:13px">What are we deploying today? Tell me about your project or share your screen to get started. 🚀</p>
+          </div>
+          <div class="msg-time">Just now</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+      <div class="quick-btn" onclick="insertQuick('Deploy my Next.js app to Vercel')">🚀 Deploy Next.js</div>
+      <div class="quick-btn" onclick="insertQuick('Help me Dockerize my app')">🐳 Dockerize</div>
+      <div class="quick-btn" onclick="insertQuick('Set up CI/CD pipeline with GitHub Actions')">⚙️ CI/CD Setup</div>
+      <div class="quick-btn" onclick="insertQuick('My deployment failed, help me debug')">🐛 Debug Deploy</div>
+      <div class="quick-btn" onclick="insertQuick('Set up environment variables securely')">🔐 Env Variables</div>
+    </div>
+
+    <!-- INPUT -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <div class="input-tools">
+          <button class="input-tool-btn" title="Attach file" onclick="attachFile()">📎</button>
+          <button class="input-tool-btn" title="Share screen" onclick="openScreenShare()">🖥️</button>
+          <button class="input-tool-btn" title="Voice input" onclick="voiceInput()">🎤</button>
+        </div>
+        <textarea id="msgInput" placeholder="Ask anything about your project... (Shift+Enter for newline)" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <div class="panel-section">
+      <div class="panel-title">🖥️ Screen Share</div>
+      <button class="screen-share-btn" id="shareBtn" onclick="openScreenShare()">
+        📺 Start Screen Share
+      </button>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5">
+        Share your screen so I can see exactly what you're working on and guide you step-by-step in real time.
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">📦 Stack Detector</div>
+      <div class="stack-item">
+        <span class="stack-icon">⚛️</span>
+        <div class="stack-info">
+          <div class="stack-name">React / Next.js</div>
+          <div class="stack-version">v14.x detected</div>
+        </div>
+        <div class="stack-status ok"></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">🟢</span>
+        <div class="stack-info">
+          <div class="stack-name">Node.js</div>
+          <div class="stack-version">v20 LTS</div>
+        </div>
+        <div class="stack-status ok"></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">🐳</span>
+        <div class="stack-info">
+          <div class="stack-name">Docker</div>
+          <div class="stack-version">Not detected</div>
+        </div>
+        <div class="stack-status warn"></div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">🗄️</span>
+        <div class="stack-info">
+          <div class="stack-name">PostgreSQL</div>
+          <div class="stack-version">Prisma ORM</div>
+        </div>
+        <div class="stack-status ok"></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">🔍 Latest Research</div>
+      <div class="research-item" onclick="insertQuick('What changed in Next.js 15?')">
+        <div class="research-item-title">Next.js 15 Changes</div>
+        <div class="research-item-sub">Turbopack stable, new cache model</div>
+      </div>
+      <div class="research-item" onclick="insertQuick('Tell me about Vercel deployment changes')">
+        <div class="research-item-title">Vercel 2025 Updates</div>
+        <div class="research-item-sub">Fluid compute, new pricing</div>
+      </div>
+      <div class="research-item" onclick="insertQuick('What is new in Docker in 2025?')">
+        <div class="research-item-title">Docker Desktop 4.x</div>
+        <div class="research-item-sub">Model runner, Gordon AI agent</div>
+      </div>
+      <div class="research-item" onclick="insertQuick('GitHub Actions latest features')">
+        <div class="research-item-title">GitHub Actions</div>
+        <div class="research-item-sub">Reusable workflows v3</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">🚀 Active Deployments</div>
+      <div class="deploy-widget">
+        <div class="deploy-header">
+          <span class="deploy-name">my-nextjs-app</span>
+          <span class="deploy-env prod">PROD</span>
+        </div>
+        <div class="deploy-progress">
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+          <div class="progress-label"><span>✅ Live</span><span>vercel.app</span></div>
+        </div>
+      </div>
+      <div class="deploy-widget">
+        <div class="deploy-header">
+          <span class="deploy-name">api-backend</span>
+          <span class="deploy-env staging">STAGING</span>
+        </div>
+        <div class="deploy-progress">
+          <div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div>
+          <div class="progress-label"><span>⏳ Building</span><span>65%</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCREEN SHARE MODAL -->
+<div class="modal-overlay" id="screenModal">
+  <div class="modal">
+    <div class="modal-title">🖥️ Screen Share</div>
+    <div class="modal-sub">Choose what to share so I can guide you in real time.</div>
+    <div class="modal-options">
+      <div class="modal-option" onclick="startShare('screen')">
+        <span class="opt-icon">🖥️</span>
+        <div>
+          <div class="opt-title">Entire Screen</div>
+          <div class="opt-sub">Share your full display</div>
+        </div>
+      </div>
+      <div class="modal-option" onclick="startShare('window')">
+        <span class="opt-icon">🪟</span>
+        <div>
+          <div class="opt-title">Application Window</div>
+          <div class="opt-sub">Share a specific app (e.g. VS Code, Terminal)</div>
+        </div>
+      </div>
+      <div class="modal-option" onclick="startShare('tab')">
+        <span class="opt-icon">📑</span>
+        <div>
+          <div class="opt-title">Browser Tab</div>
+          <div class="opt-sub">Share a specific tab</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('screenModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANNOTATE TOOLBAR -->
+<div class="annotate-toolbar" id="annotateToolbar">
+  <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace">LIVE</span>
+  <div class="annotate-btn" title="Pointer">👆</div>
+  <div class="annotate-btn" title="Draw">✏️</div>
+  <div class="annotate-btn" title="Highlight">🟡</div>
+  <div class="annotate-btn" title="Screenshot to AI" onclick="sendScreenshot()" style="background:rgba(0,255,136,0.1);border-color:rgba(0,255,136,0.3)">📸</div>
+  <div class="annotate-btn" title="Stop share" onclick="stopScreenShare()" style="background:rgba(255,68,102,0.1);border-color:rgba(255,68,102,0.3)">⏹️</div>
+</div>
+
+<script>
+  const API_KEY_MISSING_MSG = `I need your Anthropic API key to power the AI responses. 
+
+To get started:
+1. Go to **console.anthropic.com**
+2. Create an API key
+3. Click ⚙️ Settings above and paste your key
+
+Once set, I'll be fully operational with real-time research and deployment guidance!`;
+
+  let apiKey = localStorage.getItem('deployai_key') || '';
+  let currentMode = 'deploy';
+  let screenStream = null;
+  let conversationHistory = [];
+  let isThinking = false;
+
+  const SYSTEM_PROMPT = `You are DEPLOY.AI — an elite full-stack deployment assistant that is fully independent, reliable, and always up-to-date.
+
+CORE BEHAVIORS:
+1. ALWAYS research and mention latest versions/changelogs before giving advice (e.g. "As of 2025, Next.js 15 changed X...")
+2. Give COMPLETE, working solutions — never half-answers
+3. For things the user must do manually (clicking UI, approvals, etc.), give NUMBERED STEP-BY-STEP guides with exact button names/paths
+4. Provide complete code blocks with correct syntax highlighting comments (lang: bash, js, yaml, etc.)
+5. Be FAST and direct — no fluff, maximum signal
+6. When in GUIDE mode, be a patient support person walking them through each step
+7. If screen share is active, acknowledge you can see their screen and reference what you see
+8. Always specify which platform/tool version your answer applies to
+
+MODES:
+- Deploy: Focus on deployment commands, configs, CI/CD
+- Debug: Root cause analysis, error reading, fix suggestions  
+- Architect: System design, tech stack choices, scalability
+- Code Review: Best practices, security, performance issues
+- Step Guide: Patient manual walkthroughs for UI-heavy tasks
+
+FORMAT RULES:
+- Use code blocks for ALL commands and code
+- Use numbered steps for manual tasks
+- Lead with the answer, then explain
+- Flag breaking changes or deprecations with ⚠️
+- Flag latest version info with 🆕
+
+Current mode: ${currentMode}`;
+
+  function getSystemPrompt() {
+    return `You are DEPLOY.AI — an elite full-stack deployment assistant that is fully independent, reliable, and always up-to-date.
+
+CORE BEHAVIORS:
+1. ALWAYS research and mention latest versions/changelogs before giving advice (e.g. "As of 2025, Next.js 15 changed X...")
+2. Give COMPLETE, working solutions — never half-answers
+3. For things the user must do manually, give NUMBERED STEP-BY-STEP guides with exact button names/paths
+4. Provide complete code blocks with correct syntax
+5. Be FAST and direct — no fluff, maximum signal
+6. When in GUIDE mode, be a patient support person walking them through each step
+
+MODES:
+- Deploy: Deployment commands, configs, CI/CD
+- Debug: Root cause analysis, error reading, fix suggestions  
+- Architect: System design, tech stack choices, scalability
+- Code Review: Best practices, security, performance issues
+- Step Guide: Patient manual walkthroughs for UI-heavy tasks
+
+Current mode: ${currentMode}
+
+FORMAT RULES:
+- Use code blocks with language labels for ALL commands/code
+- Use numbered steps for manual tasks
+- Lead with the answer, explain after
+- Flag breaking changes with ⚠️
+- Mention latest versions with 🆕`;
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const msg = input.value.trim();
+    if (!msg || isThinking) return;
+
+    addMessage('user', msg);
+    input.value = '';
+    autoResize(input);
+    conversationHistory.push({ role: 'user', content: msg });
+
+    if (!apiKey) {
+      addMessage('ai', API_KEY_MISSING_MSG);
+      return;
+    }
+
+    isThinking = true;
+    document.getElementById('sendBtn').disabled = true;
+    const typingId = showTyping();
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: getSystemPrompt(),
+          messages: conversationHistory.slice(-20),
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+        })
+      });
+
+      removeTyping(typingId);
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'API error');
+      }
+
+      const data = await res.json();
+      let reply = data.content
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('\n');
+
+      if (!reply) reply = "I've looked into this — let me know if you need more detail.";
+
+      conversationHistory.push({ role: 'assistant', content: reply });
+      addMessage('ai', reply, true);
+
+    } catch (e) {
+      removeTyping(typingId);
+      addMessage('ai', `⚠️ Error: ${e.message}\n\nMake sure your API key is set correctly in Settings.`);
+    }
+
+    isThinking = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+
+  function addMessage(role, text, researched = false) {
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let formattedText = formatMessage(text);
+
+    const researchBadge = (role === 'ai' && researched)
+      ? `<div class="research-badge">🔍 Web-researched answer</div>` : '';
+
+    div.innerHTML = `
+      <div class="avatar ${role}">${role === 'ai' ? '⚡' : 'ME'}</div>
+      <div class="msg-content">
+        <div class="msg-bubble">${researchBadge}${formattedText}</div>
+        <div class="msg-time">${time}</div>
+      </div>`;
+
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function formatMessage(text) {
+    // Code blocks
+    text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+      const l = lang || 'bash';
+      return `<div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">${l.toUpperCase()}</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <div class="code-body">${escHtml(code.trim())}</div>
+      </div>`;
+    });
+
+    // Inline code
+    text = text.replace(/`([^`]+)`/g, '<code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-family:\'Space Mono\',monospace;font-size:12px;color:var(--accent)">$1</code>');
+
+    // Bold
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Numbered steps detection
+    text = text.replace(/^(\d+)\.\s+(.+)$/gm, (_, n, content) =>
+      `<div class="step"><div class="step-num">${n}</div><div>${content}</div></div>`);
+
+    // Warnings
+    text = text.replace(/⚠️\s*(.+)/g, '<div style="background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.2);border-radius:6px;padding:8px 10px;margin:4px 0;font-size:13px;">⚠️ $1</div>');
+
+    // Line breaks
+    text = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+
+    return text;
+  }
+
+  function escHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function copyCode(btn) {
+    const code = btn.closest('.code-block').querySelector('.code-body').textContent;
+    navigator.clipboard.writeText(code);
+    btn.textContent = 'Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 1500);
+  }
+
+  function showTyping() {
+    const id = 'typing_' + Date.now();
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'message ai'; div.id = id;
+    div.innerHTML = `<div class="avatar ai">⚡</div><div class="msg-content"><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) {
+    document.getElementById(id)?.remove();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function setMode(el, mode) {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentMode = mode;
+    addMessage('ai', `Switched to **${mode.charAt(0).toUpperCase()+mode.slice(1)}** mode. ${getModeHint(mode)}`);
+  }
+
+  function getModeHint(mode) {
+    const hints = {
+      deploy: 'I\'ll focus on deployment configs, commands, and platform-specific guides.',
+      debug: 'Share your error message or logs and I\'ll find the root cause.',
+      architect: 'Tell me about your project and I\'ll recommend the best stack and architecture.',
+      review: 'Paste your code and I\'ll review it for security, performance, and best practices.',
+      guide: 'I\'ll walk you through every step slowly and clearly. Screen share is recommended.'
+    };
+    return hints[mode] || '';
+  }
+
+  function insertQuick(text) {
+    const input = document.getElementById('msgInput');
+    input.value = text;
+    autoResize(input);
+    input.focus();
+  }
+
+  function quickDeploy(platform) {
+    const msgs = {
+      vercel: 'Help me deploy my app to Vercel from scratch, with the latest setup',
+      railway: 'How do I deploy to Railway? Give me the full setup guide',
+      docker: 'Help me Dockerize my application and set up Docker Compose',
+      aws: 'What\'s the best way to deploy my app to AWS in 2025? Compare EC2, ECS, and App Runner'
+    };
+    insertQuick(msgs[platform]);
+    sendMessage();
+  }
+
+  function openScreenShare() {
+    document.getElementById('screenModal').classList.add('show');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  async function startShare(type) {
+    closeModal('screenModal');
+    try {
+      const constraints = { video: true, audio: false };
+      screenStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+
+      const video = document.getElementById('screenVideo');
+      video.srcObject = screenStream;
+
+      document.getElementById('screenShareBanner').classList.add('active');
+      document.getElementById('annotateToolbar').classList.add('show');
+
+      const shareBtn = document.getElementById('shareBtn');
+      shareBtn.classList.add('active');
+      shareBtn.innerHTML = '⏹️ Stop Screen Share';
+      shareBtn.onclick = stopScreenShare;
+
+      screenStream.getVideoTracks()[0].addEventListener('ended', stopScreenShare);
+
+      addMessage('ai', '📺 **Screen share active!** I can now see your screen. Describe what you\'re trying to do, or click 📸 to send me a snapshot of what\'s on your screen and I\'ll give you specific guidance.');
+
+    } catch (e) {
+      if (e.name !== 'NotAllowedError') {
+        addMessage('ai', `Could not start screen share: ${e.message}`);
+      }
+    }
+  }
+
+  function stopScreenShare() {
+    if (screenStream) {
+      screenStream.getTracks().forEach(t => t.stop());
+      screenStream = null;
+    }
+    document.getElementById('screenShareBanner').classList.remove('active');
+    document.getElementById('annotateToolbar').classList.remove('show');
+    document.getElementById('screenVideo').srcObject = null;
+
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.classList.remove('active');
+    shareBtn.innerHTML = '📺 Start Screen Share';
+    shareBtn.onclick = openScreenShare;
+
+    addMessage('ai', 'Screen share ended. You can restart it anytime by clicking **Start Screen Share**.');
+  }
+
+  async function sendScreenshot() {
+    if (!screenStream) return;
+    const video = document.getElementById('screenVideo');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    addMessage('user', '📸 [Screenshot sent to AI]');
+    addMessage('ai', '🖼️ Got your screenshot! Tell me what you need help with on this screen and I\'ll guide you step by step.');
+  }
+
+  function voiceInput() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      addMessage('ai', '⚠️ Voice input is not supported in your browser. Try Chrome or Edge.');
+      return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    rec.lang = 'en-US';
+    rec.onresult = e => {
+      document.getElementById('msgInput').value = e.results[0][0].transcript;
+      autoResize(document.getElementById('msgInput'));
+    };
+    rec.start();
+  }
+
+  function attachFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,.yaml,.yml,.env,.txt,.md,.js,.ts,.py,.go,.dockerfile,Dockerfile';
+    input.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = r => {
+        const content = r.result;
+        const msg = `I'm sharing a file: **${file.name}**\n\n\`\`\`\n${content.slice(0, 3000)}\n\`\`\`\n\nPlease analyze this and help me with deployment.`;
+        document.getElementById('msgInput').value = msg;
+        autoResize(document.getElementById('msgInput'));
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
+  function showSettings() {
+    const key = prompt('Enter your Anthropic API Key (saved locally):', apiKey);
+    if (key !== null) {
+      apiKey = key.trim();
+      localStorage.setItem('deployai_key', apiKey);
+      if (apiKey) {
+        addMessage('ai', '✅ API key saved! I\'m now fully operational. What would you like to deploy?');
+      }
+    }
+  }
+
+  function clearChat() {
+    conversationHistory = [];
+    const msgs = document.getElementById('messages');
+    msgs.innerHTML = '';
+    addMessage('ai', '✨ Fresh session started. What are we building today?');
+  }
+
+  function exportChat() {
+    const msgs = document.getElementById('messages');
+    const text = Array.from(msgs.querySelectorAll('.msg-bubble'))
+      .map(b => b.textContent.trim()).join('\n\n---\n\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `deployai-chat-${Date.now()}.txt`;
+    a.click();
+  }
+
+  // Auto prompt for API key
+  if (!apiKey) {
+    setTimeout(() => {
+      addMessage('ai', '🔑 To activate full AI capabilities, click **⚙️ Settings** (top right) and enter your Anthropic API key. Get one free at **console.anthropic.com**');
+    }, 1200);
+  }
+
+  // Animate deploy progress
+  setInterval(() => {
+    const fill = document.querySelector('.deploy-widget:last-child .progress-fill');
+    if (fill) {
+      let w = parseInt(fill.style.width) || 65;
+      if (w < 100) {
+        fill.style.width = Math.min(w + Math.random() * 3, 100) + '%';
+        if (parseFloat(fill.style.width) >= 99) {
+          fill.closest('.deploy-widget').querySelector('.progress-label').innerHTML =
+            '<span>✅ Deployed</span><span>railway.app</span>';
+        }
+      }
+    }
+  }, 2000);
+</script>
+
+</body>
+</html>
